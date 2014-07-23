@@ -2,6 +2,10 @@
 Redis-Semaphore
 ===============
 
+.. image:: https://travis-ci.org/bluele/redis-semaphore.svg?branch=master
+    :target: https://travis-ci.org/bluele/redis-semaphore
+
+
 A distributed semaphore and mutex built on Redis.
 
 
