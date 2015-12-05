@@ -38,6 +38,17 @@ class SimpleTestCase(TestCase):
                 assert sem.available_count == (self.s_count - 2)
         assert self.sem1.available_count == self.s_count
 
+    def test_nonblocking(self):
+        from redis_semaphore import NotAvailable
+        for _ in range(self.s_count):
+            self.sem1.acquire()
+        assert self.sem1.available_count == 0
+
+        self.sem1.blocking = False
+        with self.assertRaises(NotAvailable):
+            with self.sem1:
+                assert False, 'should never reach here'
+
 if __name__ == '__main__':
     from os.path import dirname, abspath
     import sys

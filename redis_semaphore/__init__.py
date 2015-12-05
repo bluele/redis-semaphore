@@ -1,16 +1,21 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
+
 from redis import StrictRedis
 import time
 
-
 __version_info__ = ('0', '1', '0')
+
+
+class NotAvailable(Exception):
+    """ Raised when unable to aquire the Semaphore in non-blocking mode
+    """
 
 
 class Semaphore(object):
 
     exists_val = 'ok'
 
-    def __init__(self, client, count, namespace=None, stale_client_timeout=None):
+    def __init__(self, client, count, namespace=None, stale_client_timeout=None, blocking=True):
         self.client = client or StrictRedis()
         if count < 1:
             raise ValueError("Parameter 'count' must be larger than 1")
@@ -18,6 +23,7 @@ class Semaphore(object):
         self.namespace = namespace if namespace else 'SEMAPHORE'
         self.stale_client_timeout = stale_client_timeout
         self.is_use_local_time = False
+        self.blocking = blocking
         self._init()
         self._local_tokens = list()
 
@@ -43,9 +49,15 @@ class Semaphore(object):
         if self.stale_client_timeout is not None:
             self.release_stale_locks()
 
-        pair = self.client.blpop(self.available_key, timeout)
-        if pair is None:
-            return None
+        if self.blocking:
+            pair = self.client.blpop(self.available_key, timeout)
+            if pair is None:
+                return None
+        else:
+            pair = self.client.lpop(self.available_key)
+            if pair is None:
+                raise NotAvailable
+
         token = pair[1]
         self._local_tokens.append(token)
         self.client.hset(self.grabbed_key, token, self.current_time)
