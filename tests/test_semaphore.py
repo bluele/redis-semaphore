@@ -1,12 +1,17 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
+
+from __future__ import absolute_import
+
 from unittest import TestCase
+
+from redis import Redis
+
+from redis_semaphore import Semaphore
 
 
 class SimpleTestCase(TestCase):
 
     def setUp(self):
-        from redis import Redis
-        from redis_semaphore import Semaphore
         self.client = Redis()
         self.s_count = 2
         self.sem1 = Semaphore(
@@ -37,6 +42,14 @@ class SimpleTestCase(TestCase):
             with sem:
                 assert sem.available_count == (self.s_count - 2)
         assert self.sem1.available_count == self.s_count
+
+    def test_create_with_existing(self):
+        with self.sem1 as sem1:
+            with self.sem2 as sem2:
+                assert sem1.available_count == 0
+                assert sem2.available_count == 0
+                sem3 = Semaphore(client=self.client, count=40)
+                assert sem3.available_count == 0
 
 if __name__ == '__main__':
     from os.path import dirname, abspath

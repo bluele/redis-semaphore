@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 from redis import StrictRedis
 import time
 
@@ -18,7 +18,6 @@ class Semaphore(object):
         self.namespace = namespace if namespace else 'SEMAPHORE'
         self.stale_client_timeout = stale_client_timeout
         self.is_use_local_time = False
-        self._init()
         self._local_tokens = list()
 
     def _exists_or_init(self):
@@ -34,12 +33,14 @@ class Semaphore(object):
             pipe.delete(self.grabbed_key, self.available_key)
             pipe.rpush(self.available_key, *range(self.count))
             pipe.execute()
+        self.client.persist(self.check_exists_key)
 
     @property
     def available_count(self):
         return self.client.llen(self.available_key)
 
     def acquire(self, timeout=0, target=None):
+        self._exists_or_init()
         if self.stale_client_timeout is not None:
             self.release_stale_locks()
 
