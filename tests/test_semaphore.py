@@ -14,10 +14,12 @@ class SimpleTestCase(TestCase):
             client=self.client,
             count=self.s_count
         )
+        self.sem1.reset()
         self.sem2 = Semaphore(
             client=self.client,
             count=self.s_count
         )
+        self.sem2.reset()
 
     def test_lock(self):
         assert self.sem1.available_count == self.s_count

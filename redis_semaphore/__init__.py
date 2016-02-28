@@ -95,6 +95,9 @@ class Semaphore(object):
             return False
         return self.signal(self._local_tokens.pop())
 
+    def reset(self):
+        self._init()
+
     def signal(self, token):
         if token is None:
             return None
