@@ -22,6 +22,7 @@ class Semaphore(object):
         self.namespace = namespace if namespace else 'SEMAPHORE'
         self.stale_client_timeout = stale_client_timeout
         self.is_use_local_time = False
+        self.blocking = blocking
         self._local_tokens = list()
 
     def _exists_or_init(self):
