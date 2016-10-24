@@ -1,14 +1,14 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import
 from unittest import TestCase
-from redis import Redis
+from redis import StrictRedis
 from redis_semaphore import Semaphore
 
 
 class SimpleTestCase(TestCase):
 
     def setUp(self):
-        self.client = Redis()
+        self.client = StrictRedis()
         self.s_count = 2
         self.sem1 = Semaphore(
             client=self.client,
