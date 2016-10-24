@@ -20,6 +20,12 @@ class SimpleTestCase(TestCase):
             count=self.s_count
         )
         self.sem2.reset()
+        self.sem3 = Semaphore(
+            client=self.client,
+            count=self.s_count,
+            blocking=False
+        )
+        self.sem3.reset()
 
     def test_lock(self):
         assert self.sem1.available_count == self.s_count
@@ -52,12 +58,11 @@ class SimpleTestCase(TestCase):
     def test_nonblocking(self):
         from redis_semaphore import NotAvailable
         for _ in range(self.s_count):
-            self.sem1.acquire()
-        assert self.sem1.available_count == 0
+            self.sem3.acquire()
+        assert self.sem3.available_count == 0
 
-        self.sem1.blocking = False
         with self.assertRaises(NotAvailable):
-            with self.sem1:
+            with self.sem3:
                 assert False, 'should never reach here'
 
 
