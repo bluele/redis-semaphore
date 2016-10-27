@@ -2,7 +2,7 @@
 from redis import StrictRedis
 import time
 
-__version_info__ = ('0', '2', '0')
+__version_info__ = ('0', '2', '1')
 
 
 class NotAvailable(Exception):
