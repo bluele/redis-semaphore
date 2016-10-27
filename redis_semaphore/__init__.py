@@ -53,12 +53,12 @@ class Semaphore(object):
             pair = self.client.blpop(self.available_key, timeout)
             if pair is None:
                 return None
+            token = pair[1]
         else:
-            pair = self.client.lpop(self.available_key)
-            if pair is None:
+            token = self.client.lpop(self.available_key)
+            if token is None:
                 raise NotAvailable
 
-        token = pair[1]
         self._local_tokens.append(token)
         self.client.hset(self.grabbed_key, token, self.current_time)
         if target is not None:
