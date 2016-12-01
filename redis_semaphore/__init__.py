@@ -52,7 +52,7 @@ class Semaphore(object):
         if self.blocking:
             pair = self.client.blpop(self.available_key, timeout)
             if pair is None:
-                return None
+                raise NotAvailable
             token = pair[1]
         else:
             token = self.client.lpop(self.available_key)
@@ -74,7 +74,7 @@ class Semaphore(object):
             return False
         self.client.expire(self.check_release_locks_key, expires)
         try:
-            for token, looked_at in self.client.hgetall(self.grabbed_key).iteritems():
+            for token, looked_at in self.client.hgetall(self.grabbed_key).items():
                 timed_out_at = float(looked_at) + self.stale_client_timeout
                 if timed_out_at < self.current_time:
                     self.signal(token)
