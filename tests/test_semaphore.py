@@ -11,7 +11,7 @@ from redis_semaphore import Semaphore
 class SimpleTestCase(TestCase):
 
     def setUp(self):
-        redis_host = os.environ.get('TEST_REDIS_HOST', 'localhost')
+        redis_host = os.environ.get('TEST_REDIS_HOST') or 'localhost'
         self.client = StrictRedis(host=redis_host)
         self.s_count = 2
         self.sem1 = Semaphore(
