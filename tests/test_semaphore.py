@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 from __future__ import absolute_import
+
+import os
 from unittest import TestCase
+
 from redis import StrictRedis
 from redis_semaphore import Semaphore
 
@@ -8,7 +11,8 @@ from redis_semaphore import Semaphore
 class SimpleTestCase(TestCase):
 
     def setUp(self):
-        self.client = StrictRedis()
+        redis_host = os.environ.get('TEST_REDIS_HOST') or 'localhost'
+        self.client = StrictRedis(host=redis_host)
         self.s_count = 2
         self.sem1 = Semaphore(
             client=self.client,
@@ -64,6 +68,13 @@ class SimpleTestCase(TestCase):
         with self.assertRaises(NotAvailable):
             with self.sem3:
                 assert False, 'should never reach here'
+
+    def test_acquire_with_timeout(self):
+        from redis_semaphore import NotAvailable
+        for _ in range(self.s_count):
+            self.sem1.acquire()
+        with self.assertRaises(NotAvailable):
+            self.sem1.acquire(timeout=1)
 
 
 if __name__ == '__main__':
