@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
 from redis import StrictRedis
 import time
+import sys
 
-__version_info__ = ('0', '2', '1')
+__version_info__ = ('0', '2', '2')
 
 
 class NotAvailable(Exception):
@@ -74,7 +75,7 @@ class Semaphore(object):
             return False
         self.client.expire(self.check_release_locks_key, expires)
         try:
-            for token, looked_at in self.client.hgetall(self.grabbed_key).items():
+            for token, looked_at in dict_items(self.client.hgetall(self.grabbed_key)):
                 timed_out_at = float(looked_at) + self.stale_client_timeout
                 if timed_out_at < self.current_time:
                     self.signal(token)
@@ -145,3 +146,16 @@ class Semaphore(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.release()
         return True if exc_type is None else False
+
+
+def __py2_dict_items(dic):
+    return dic.iteritems()
+
+
+def __py3_dict_items(dic):
+    return dic.items()
+
+
+dict_items = __py3_dict_items \
+                if sys.version_info.major >= 3 \
+                else __py2_dict_items
