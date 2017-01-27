@@ -56,3 +56,14 @@ Examples
 
     if __name__ == '__main__':
         main()
+
+Force unlock
+-------------
+
+If the process that has the lock is killed, the semaphore will stay locked. To manually release it:
+
+::
+    
+    semaphore = Semaphore(Redis(),count=1,namespace='example')
+    token = semaphore.get_namespaced_key('example')
+    semaphore.signal(token)
