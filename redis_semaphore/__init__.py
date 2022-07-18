@@ -70,10 +70,11 @@ class Semaphore(object):
         return token
 
     def release_stale_locks(self, expires=10):
-        token = self.client.getset(self.check_release_locks_key, self.exists_val)
+        token = self.client.get(self.check_release_locks_key)
         if token:
             return False
-        self.client.expire(self.check_release_locks_key, expires)
+        
+        token = self.client.set(self.check_release_locks_key, self.exists_val, ex=expires)
         try:
             for token, looked_at in dict_items(self.client.hgetall(self.grabbed_key)):
                 timed_out_at = float(looked_at) + self.stale_client_timeout
