@@ -27,13 +27,13 @@ class Semaphore(object):
         self._local_tokens = list()
 
     def _exists_or_init(self):
-        old_key = self.client.getset(self.check_exists_key, self.exists_val)
+        old_key = self.client.get(self.check_exists_key)
         if old_key:
             return False
         return self._init()
 
     def _init(self):
-        self.client.expire(self.check_exists_key, 10)
+        self.client.set(self.check_exists_key, self.exists_val, ex=10)
         with self.client.pipeline() as pipe:
             pipe.multi()
             pipe.delete(self.grabbed_key, self.available_key)
@@ -74,7 +74,7 @@ class Semaphore(object):
         if token:
             return False
         
-        token = self.client.set(self.check_release_locks_key, self.exists_val, ex=expires)
+        self.client.set(self.check_release_locks_key, self.exists_val, ex=expires)
         try:
             for token, looked_at in dict_items(self.client.hgetall(self.grabbed_key)):
                 timed_out_at = float(looked_at) + self.stale_client_timeout
