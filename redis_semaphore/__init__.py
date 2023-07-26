@@ -2,8 +2,11 @@
 from redis import StrictRedis
 import time
 import sys
+from logging import getLogger
 
 __version_info__ = ('0', '2', '2')
+
+log = getLogger(__name__)
 
 
 class NotAvailable(Exception):
@@ -55,13 +58,16 @@ class Semaphore(object):
             if pair is None:
                 raise NotAvailable
             token = pair[1]
+            log.debug("Popped %s from %s", token, self.available_key)
         else:
             token = self.client.lpop(self.available_key)
+            log.debug("Popped %s from %s", token, self.available_key)
             if token is None:
                 raise NotAvailable
 
         self._local_tokens.append(token)
         self.client.hset(self.grabbed_key, token, self.current_time)
+        log.debug("Added %s with %s time to %s", token, self.current_time, self.grabbed_key)
         if target is not None:
             try:
                 target(token)
@@ -107,6 +113,7 @@ class Semaphore(object):
             pipe.hdel(self.grabbed_key, token)
             pipe.lpush(self.available_key, token)
             pipe.execute()
+            log.debug("Moved %s from %s to %s", token, self.grabbed_key, self.available_key)
             return token
 
     def get_namespaced_key(self, suffix):
